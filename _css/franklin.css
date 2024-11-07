@@ -3,11 +3,13 @@
 ================================================================== */
 
 :root {
-  --block-background: hsl(0, 0%, 94%);
-  --output-background: hsl(0, 0%, 98%);
+  --block-background: hsl(0, 0%, 98%); /* 背景色を明るく */
+  --output-background: hsl(0, 0%, 100%); /* 出力背景色 */
   --small: 14px;
-  --normal: 19px;
-  --text-color: hsv(0, 0%, 20%);
+  --normal: 18px;
+  --text-color: hsl(0, 0%, 20%); /* 文字色 */
+  --primary-color: #005b99; /* メインカラー */
+  --highlight-color: #f0f8ff; /* ハイライト背景色 */
 }
 
 /* ==================================================================
@@ -15,7 +17,7 @@
 ================================================================== */
 
 html {
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: "Arial", sans-serif;
   font-size: var(--normal);
   color: var(--text-color);
 }
@@ -25,28 +27,26 @@ html {
 ================================================================== */
 
 .franklin-content .row {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
 }
 
-.franklin-content .left {
-  float: left;
+.franklin-content .left,
+.franklin-content .right {
+  flex: 1;
   margin-right: 15px;
 }
 
-.franklin-content .right {
-  float: right;
-}
-
 .franklin-content .container img {
-  width: auto;
-  padding-left: 0;
+  max-width: 100%;
+  height: auto;
   border-radius: 10px;
 }
 
 .franklin-content .footnote {
+  font-size: 70%;
   position: relative;
   top: -0.5em;
-  font-size: 70%;
 }
 
 /* ==================================================================
@@ -55,7 +55,7 @@ html {
 
 .franklin-content .page-foot a {
   text-decoration: none;
-  color: #a6a2a0;
+  color: var(--primary-color);
   text-decoration: underline;
 }
 
@@ -64,10 +64,10 @@ html {
   font-family: Arial, serif;
   color: #a6a2a0;
   text-align: center;
-  margin-top: 6em;
-  border-top: 1px solid lightgrey;
+  margin-top: 4em;
+  border-top: 1px solid #ddd;
   padding-top: 2em;
-  margin-bottom: 4em;
+  margin-bottom: 3em;
 }
 
 /* ==================================================================
@@ -75,18 +75,15 @@ html {
 ================================================================== */
 
 .franklin-toc li {
-  /* Avoid clickable elements being too close together. */
   margin: 0.6rem 0;
 }
 
 .franklin-content {
   position: relative;
-  padding-left: 12.5%;
-  padding-right: 12.5%;
-  line-height: 1.35em;
+  padding: 0 12.5%;
+  line-height: 1.6em;
 }
 
-/* On wide screens, fix content width to a max value. */
 @media (min-width: 940px) {
   .franklin-content {
     width: 705px;
@@ -95,11 +92,9 @@ html {
   }
 }
 
-/* On narrow device, reduce margins. */
 @media (max-width: 480px) {
   .franklin-content {
-    padding-left: 6%;
-    padding-right: 6%;
+    padding: 0 6%;
   }
 }
 
@@ -107,68 +102,50 @@ html {
     TITLES
 ================================================================== */
 
-.franklin-content h1 { font-size: 24px; }
-.franklin-content h2 { font-size: 22px; }
-.franklin-content h3 { font-size: 20px; }
-
-.franklin-content h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  text-align: left;
-}
-
 .franklin-content h1 {
-  padding-bottom: 0.5em;
-  border-bottom: 3px double lightgrey;
+  font-size: 28px;
   margin-top: 1.5em;
   margin-bottom: 1em;
+  padding-bottom: 0.5em;
+  border-bottom: 3px double #ddd;
 }
 
 .franklin-content h2 {
-  padding-bottom: 0.3em;
-  border-bottom: 1px solid lightgrey;
+  font-size: 24px;
   margin-top: 2em;
   margin-bottom: 1em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #ddd;
 }
 
-.franklin-content h1 a { color: inherit; }
-.franklin-content h1 a:hover { text-decoration: none; }
-.franklin-content h2 a { color: inherit; }
-.franklin-content h2 a:hover { text-decoration: none; }
-.franklin-content h3 a { color: inherit; }
-.franklin-content h3 a:hover { text-decoration: none; }
-.franklin-content h4 a { color: inherit; }
-.franklin-content h4 a:hover { text-decoration: none; }
-.franklin-content h5 a { color: inherit; }
-.franklin-content h5 a:hover { text-decoration: none; }
-.franklin-content h6 a { color: inherit; }
-.franklin-content h6 a:hover { text-decoration: none; }
+.franklin-content h1, h2, h3, h4, h5, h6 {
+  text-align: left;
+}
+
+.franklin-content h1 a,
+.franklin-content h2 a,
+.franklin-content h3 a {
+  color: inherit;
+  text-decoration: none;
+}
 
 .franklin-content table {
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
   border-collapse: collapse;
+  margin: 20px 0;
   text-align: center;
 }
 
-.franklin-toc ol ol {
-  list-style-type: lower-alpha;
-}
-
-.franklin-content th,
-td {
+.franklin-content th, td {
   font-size: var(--small);
   padding: 10px;
-  border: 1px solid black;
+  border: 1px solid #ddd;
 }
 
 .franklin-content blockquote {
   background: var(--block-background);
-  border-left: 7px solid #a8a8a8;
-  margin: 1.5em 10px;
+  border-left: 7px solid var(--primary-color);
+  margin: 1.5em 0;
   padding: 0.5em 10px;
   font-style: italic;
 }
@@ -181,13 +158,12 @@ td {
     GENERAL FORMATTING
 ================================================================== */
 
-/* Spacing between bullet points. */
 .franklin-content li p {
   margin: 10px 0;
 }
 
 .franklin-content a {
-  color: #004de6;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -199,8 +175,10 @@ td {
     HYPERREFS AND FOOTNOTES
 ================================================================== */
 
-.franklin-content .eqref a { color: green; }
-.franklin-content .bibref a { color: green; }
+.franklin-content .eqref a,
+.franklin-content .bibref a {
+  color: #2e8b57;
+}
 
 .franklin-content sup {
   font-size: 70%;
@@ -213,27 +191,19 @@ td {
   margin-bottom: 10px;
 }
 
-.franklin-content .fndef tr,
-td {
+.franklin-content .fndef td {
   padding: 0;
   border: 0;
-  text-align: left;
-}
-
-.franklin-content .fndef tr {
-  border-left: 2px solid lightgray;
 }
 
 .franklin-content .fndef td.fndef-backref {
   vertical-align: top;
   font-size: 70%;
-  padding-left: 5px;
 }
 
 .franklin-content .fndef td.fndef-content {
   font-size: 80%;
   padding-left: 10px;
-  width: 100%;
 }
 
 /* ==================================================================
@@ -242,14 +212,14 @@ td {
 
 .franklin-content img {
   width: 70%;
-  text-align: center;
-  padding-left: 10%;
+  margin: 0 auto;
+  display: block;
 }
 
 .franklin-content .img-small img {
   width: 50%;
-  text-align: center;
-  padding-left: 20%;
+  margin: 0 auto;
+  display: block;
 }
 
 /* ==================================================================
@@ -261,10 +231,7 @@ body { counter-reset: eqnum; }
 .katex { font-size: 1em !important; }
 
 .katex-display .katex {
-  /* Overwrite KaTeX settings. */
   display: inline-block;
-
-  /* Allow display equations to wrap on small screens. */
   white-space: normal;
 }
 
@@ -292,16 +259,6 @@ code {
   font-size: var(--small);
 }
 
-/* .franklin-content code { */
-
-/* background-color: rgba(27,31,35,0.05); */
-
-/* padding: 0.1em 0.2em; */
-
-/* border-radius: 2px; */
-
-/* font-size: 90%; } */
-
 .hljs {
   font-size: var(--small);
   line-height: 1.35em;
@@ -310,27 +267,214 @@ code {
 
 .hljs-meta { font-weight: bold;}
 
-.hljs-meta.shell_ {color: crimson;}
-.hljs-meta.prompt_ {color: rgb(25, 179, 51);}
+.hljs-meta.shell_ { color: crimson; }
+.hljs-meta.prompt_ { color: rgb(25, 179, 51); }
 
 .code-output {
   background: var(--output-background);
   border: 1px dashed #dbdbdb;
+  padding: 1em;
+  font-family: "Courier New", monospace;
 }
 
 /* ==================================================================
     BOXES
 ================================================================== */
 
-.franklin-content .colbox-blue {
-  background-color: #eef3f5;
-  padding-top: 5px;
-  padding-right: 10px;
-  padding-left: 10px;
-  padding-bottom: 5px;
-  margin-left: 5px;
+.franklin-content .colbox-blue {/* ==================================================================
+  Header and Nav
+================================================================== */
+
+nav {
+width: 64%;
+display: inline-block;
+}
+
+nav ul {
+padding-left: 0;
+margin-top: 0;
+margin-bottom: 0;
+}
+
+nav li {
+display: inline-block;
+}
+
+nav li a {
+color: #004de6;
+text-decoration: none;
+font-size: 18px;
+font-weight: bold;
+display: inline-block;
+float: center;
+padding-top: 10px;
+padding-right: 2px;
+padding-left: 2px;
+padding-bottom: 5px;
+margin-left: 7px;
+margin-right: 7px;
+border-bottom: 2px solid #4c9cf1;
+transition: color 0.3s ease;
+}
+
+header {
+text-align: right;
+margin-top: 50px;
+margin-bottom: 50px;
+display: flex;
+align-items: center;
+}
+
+header .blog-name {
+width: 35%;
+display: inline-block;
+text-align: left;
+font-size: 18px;
+font-family: "Lucida Console", Monaco, monospace;
+padding-top: 10px;
+}
+
+header .blog-name a {
+color: #a6a2a0;
+text-decoration: none;
+}
+
+header li a:hover {
+color: black;
+border-bottom: 2px solid black;
+}
+
+#menu-icon {
+display: none;
+}
+
+@media (max-width: 480px) {
+header {
+  padding-left: 6%;
+  padding-right: 6%;
+}
+}
+
+@media (min-width: 481px) {
+header {
+  padding-left: 12.5%;
+  padding-right: 12.5%;
+}
+}
+
+/* wide display: enforce maximum width of header to match content */
+@media (min-width: 940px) {
+header {
+  width: 705px;
+  margin-left: auto;
+  margin-right: auto;
+}
+}
+
+/*
+medium display: nav goes under name
+*/
+@media (max-width: 760px) {
+header { display: block; }
+
+header .blog-name {
+  display: block;
+  width: 100%;
+  padding-bottom: 10px;
+}
+
+nav {
+  width: 100%;
+}
+}
+
+/*
+narrow display: collapse the header (don't show the menu items)
+instead, display a burger menu.
+*/
+@media (max-width: 500px) {
+header {
+  height: 35px;
+  display: flex;
+  align-items: center;
+}
+
+header .blog-name {
+  display: inline-block;
+  width: 70%;
+}
+
+nav {
+  display: inline-block;
+  width: 27%;
+}
+
+nav ul,
+nav:active ul {
+  display: none;
+  position: absolute;
+
+  /* padding: 20px; */
+  background: #fff;
+  border: 1px solid #444;
+  right: 50px;
+  top: 60px;
+  width: 30%;
+  border-radius: 4px 0 4px 4px;
+  z-index: 1;
+}
+
+nav li {
+  text-align: left;
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+header li a { border-bottom: none; }
+header li a:hover { border-bottom: none; }
+
+nav:hover ul {
+  display: block;
+}
+
+#menu-icon {
+  display: inline-block;
+  margin-right: 10px;
   margin-top: 5px;
-  margin-bottom: 5px;
+}
+}
+
+table {
+line-height: 1em;
+margin-left: auto;
+margin-right: auto;
+border-collapse: collapse;
+text-align: center;
+margin-bottom: 1.5em;
+}
+
+tr:first-of-type {
+background: #eae9f4;
+}
+
+tr:first-of-type > th {
+text-align: center;
+}
+
+tr,
+th,
+td {
+padding: 10px;
+border: 1px solid lightgray;
+}
+
+table tbody tr td {
+border: 1px solid lightgray;
+}
+
+  background-color: #eef3f5;
+  padding: 10px;
+  margin: 10px 0;
   border-radius: 0 10px 10px 0;
-  border-left: 5px solid #4c9cf1;
+  border-left: 5px solid var(--primary-color);
 }
