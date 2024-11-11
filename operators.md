@@ -1,5 +1,3 @@
-@def prepath = "julia_blog"
-
 # Juliaに演算子を追加してみた
 
 \toc
