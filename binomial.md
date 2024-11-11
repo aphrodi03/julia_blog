@@ -119,3 +119,11 @@ println(~6~~3~~2)        # binomial(binomial(~6,3),2) = 3570
 println((~6)~~3~~2)        # binomial(binomial(~6,3),2) = 3570
 println(6~~(~3)~~2)        # binomial(binomial(6,~3),2) = 0
 ```
+
+## `./julia`が生成される過程
+
+演算子を追加する上では、**julia**言語の動作原理をうっすら理解しておく必要がある。
+
+まずは、**julia**言語のソフトウェアとしてのディレクトリ/ファイル構造を示す。
+
+![ディレクトリ構造](/prepath/assets/directory.png)
