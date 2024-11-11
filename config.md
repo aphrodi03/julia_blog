@@ -19,7 +19,7 @@ ignore = ["node_modules/"]
 generate_rss = true
 website_title = "2024-05-julia report"
 website_descr = "The blog for DOSS written by julia masaguri armies"
-website_url   = "https://tlienart.github.io/FranklinTemplates.jl/"
+website_url   = "https://aphrodi03.github.io/julia_blog/"
 +++
 
 <!--
