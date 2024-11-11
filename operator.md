@@ -242,7 +242,7 @@ JULIAの構文解析も、最初は`julia-parser.scm`のように**Scheme**な�
 常にA・B・C=(A・B)・Cを満たすものを左結合性演算子、
 常にA・B・C=A・(B・C)を満たすものを右結合性演算子という。
 !!!
-![演算子の右結合性、左結合性とは](https://www.pandanoir.info/entry/2016/06/26/115235)
+<!-- ![演算子の右結合性、左結合性とは](https://www.pandanoir.info/entry/2016/06/26/115235) -->
 
 `false`ならば、
 さらに優先順位が高い演算の処理を行う`parse-unary-subtype`関数を呼び出す。単項演算子や`^`演算子の処理はこの関数内で行われている。
