@@ -126,4 +126,4 @@ println(6~~(~3)~~2)        # binomial(binomial(6,~3),2) = 0
 
 まずは、**julia**言語のソフトウェアとしてのディレクトリ/ファイル構造を示す。
 
-![ディレクトリ構造](/prepath/assets/directory.png)
+![ディレクトリ構造]({{prepath}}/assets/directory.png)
