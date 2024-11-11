@@ -1,3 +1,5 @@
+@def prepath = "julia_blog"
+
 # Juliaに演算子を追加してみた
 
 \toc
@@ -124,7 +126,7 @@ println(6~~(~3)~~2)        # binomial(binomial(6,~3),2) = 0
 
 まずは、**julia**言語のソフトウェアとしてのディレクトリ/ファイル構造を示す。
 
-<!-- ![ディレクトリ構造]({{prepath}}/assets/directory.png) -->
+![ディレクトリ構造]({{prepath}}/assets/directory.png)
 
 ### JULIAコードで基本的な構文や機能を実装
 
@@ -188,7 +190,7 @@ JULIAの字句規則や構文規則ですらJULIAで書かれていては、そ�
 JULIAの構文解析も、最初は`julia-parser.scm`のように**Scheme**などの異なる言語で行い(1)、**徐々にJulia自体が自分のコードを処理できるようになる**(2)。
 最終的に、自己ホスティングの準備が整うと、以後はJuliaだけでさらに拡張可能になる(3)。
 
-<!-- ![ブートストラップイメージ]({{prepath}}/assets/bootstrap.png) -->
+![ブートストラップイメージ]({{prepath}}/assets/bootstrap.png)
 
 !!! Tip title="コンピュータのブートストラップ"
 コンピュータの電源を入れると、まず最小限のプログラム（BIOSやUEFI）が起動し、ストレージからオペレーティングシステムをロードする。これが進むにつれて、より多くの機能が動作可能となり、最終的にOSが完全に立ち上がるとユーザーが使用できる状態になる。
@@ -242,7 +244,7 @@ JULIAの構文解析も、最初は`julia-parser.scm`のように**Scheme**な�
 常にA・B・C=(A・B)・Cを満たすものを左結合性演算子、
 常にA・B・C=A・(B・C)を満たすものを右結合性演算子という。
 !!!
-<!-- ![演算子の右結合性、左結合性とは](https://www.pandanoir.info/entry/2016/06/26/115235) -->
+![演算子の右結合性、左結合性とは](https://www.pandanoir.info/entry/2016/06/26/115235)
 
 `false`ならば、
 さらに優先順位が高い演算の処理を行う`parse-unary-subtype`関数を呼び出す。単項演算子や`^`演算子の処理はこの関数内で行われている。
