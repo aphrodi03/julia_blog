@@ -1,4 +1,4 @@
-Sitemap: https://tlienart.github.io/FranklinTemplates.jl/sitemap.xml
+Sitemap: https://aphrodi03.github.io/julia_blog/sitemap.xml
 
 User-agent: *
 Disallow:
