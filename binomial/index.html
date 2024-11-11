@@ -1,0 +1,74 @@
+<!doctype html> <html lang=en > <meta charset=UTF-8 > <meta name=viewport  content="width=device-width, initial-scale=1"> <link rel=stylesheet  href="/julia_blog/libs/highlight/styles/github.min.css"> <link rel=stylesheet  href="/julia_blog/css/franklin.css"> <link rel=stylesheet  href="/julia_blog/css/basic.css"> <link rel=icon  href="/julia_blog/assets/favicon.png"> <title>Juliaに演算子を追加してみた</title> <header> <div class=blog-name ><a href="/julia_blog/">ジュリアまさぐり隊</a></div> <nav> <ul> <li><a href="/julia_blog/">Home</a> <li><a href="/julia_blog/binomial/">Operators</a> <li><a href="/julia_blog/admonitions/">Admonitions</a> </ul> </nav> </header> <div class=franklin-content ><h1 id="juliaに演算子を追加してみた"><a href="#juliaに演算子を追加してみた" class=header-anchor >Juliaに演算子を追加してみた</a></h1> <div class=franklin-toc ><ol><li><a href="#要件">要件</a></ol></div> <p>今回は、言語処理系のOSSの一つである<strong>JULIA</strong>言語について、ソースコードを手探り、演算子を追加することを目指しました。</p> <p>あらかじめ<code>2024-05-julia</code>ディレクトリに移動しておきましょう。</p> <h2 id="要件"><a href="#要件" class=header-anchor >要件</a></h2> <p>組み合わせの総数を計算する<em>Combination</em>演算は、現状</p> <pre><code class="julia hljs">binomial(<span class=hljs-number >4</span>,<span class=hljs-number >2</span>)
+&gt; <span class=hljs-number >6</span></code></pre> <p>と、関数として定義されている。</p> <p>この<code>binomial&#40;M,N&#41;</code>を<code>M~~N</code>という短縮された<strong>二項演算子</strong>にする。</p> <p>演算子には優先順位がある。</p> <p>&#33;&#33;&#33; Example title&#61;&quot;演算子の優先順位の代表例&quot; 3&#43;5×2に対して、3&#43;5よりも5×2が先に行われる。 &#33;&#33;&#33;</p> <p>既存の演算子の優先順位は、</p> <pre><code class="scheme hljs">(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-assignment
+  (<span class=hljs-name >append!</span> (<span class=hljs-name >add-dots</span> &#x27;(= += -= −= *= /= //= |\\=| ^= ÷= %= &lt;&lt;= &gt;&gt;= &gt;&gt;&gt;= |\|=| &amp;= ⊻= ≔ ⩴ ≕))
+           (<span class=hljs-name >add-dots</span> &#x27;(~))
+           &#x27;(:= $=)))
+<span class=hljs-comment >;; comma - higher than assignment outside parentheses, lower when inside</span>
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-pair (<span class=hljs-name >add-dots</span> &#x27;(=&gt;)))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-conditional &#x27;(?))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-arrow       (<span class=hljs-name >add-dots</span> &#x27;(← → ↔ ↚ ↛ ↞ ↠ ↢ ↣ ↦ ↤ ↮ ⇎ ⇍ ⇏ ⇐ ⇒ ⇔ ⇴ ⇶ ⇷ ⇸ ⇹ ⇺ ⇻ ⇼ ⇽ ⇾ ⇿ ⟵ ⟶ ⟷ ⟹ ⟺ ⟻ ⟼ ⟽ ⟾ ⟿ ⤀ ⤁ ⤂ ⤃ ⤄ ⤅ ⤆ ⤇ ⤌ ⤍ ⤎ ⤏ ⤐ ⤑ ⤔ ⤕ ⤖ ⤗ ⤘ ⤝ ⤞ ⤟ ⤠ ⥄ ⥅ ⥆ ⥇ ⥈ ⥊ ⥋ ⥎ ⥐ ⥒ ⥓ ⥖ ⥗ ⥚ ⥛ ⥞ ⥟ ⥢ ⥤ ⥦ ⥧ ⥨ ⥩ ⥪ ⥫ ⥬ ⥭ ⥰ ⧴ ⬱ ⬰ ⬲ ⬳ ⬴ ⬵ ⬶ ⬷ ⬸ ⬹ ⬺ ⬻ ⬼ ⬽ ⬾ ⬿ ⭀ ⭁ ⭂ ⭃ ⥷ ⭄ ⥺ ⭇ ⭈ ⭉ ⭊ ⭋ ⭌ ￩ ￫ ⇜ ⇝ ↜ ↝ ↩ ↪ ↫ ↬ ↼ ↽ ⇀ ⇁ ⇄ ⇆ ⇇ ⇉ ⇋ ⇌ ⇚ ⇛ ⇠ ⇢ ↷ ↶ ↺ ↻ --&gt; &lt;-- &lt;--&gt;)))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-lazy-or     (<span class=hljs-name >add-dots</span> &#x27;(|\|\||)))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-lazy-and    (<span class=hljs-name >add-dots</span> &#x27;(&amp;&amp;)))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-comparison
+  (<span class=hljs-name >append!</span> &#x27;(in isa)
+           (<span class=hljs-name >add-dots</span> &#x27;(&gt; &lt; &gt;= ≥ &lt;= ≤ == === ≡ != ≠ !== ≢ ∈ ∉ ∋ ∌ ⊆ ⊈ ⊂ ⊄ ⊊ ∝ ∊ ∍ ∥ ∦ ∷ ∺ ∻ ∽ ∾ ≁ ≃ ≂ ≄ ≅ ≆ ≇ ≈ ≉ ≊ ≋ ≌ ≍ ≎ ≐ ≑ ≒ ≓ ≖ ≗ ≘ ≙ ≚ ≛ ≜ ≝ ≞ ≟ ≣ ≦ ≧ ≨ ≩ ≪ ≫ ≬ ≭ ≮ ≯ ≰ ≱ ≲ ≳ ≴ ≵ ≶ ≷ ≸ ≹ ≺ ≻ ≼ ≽ ≾ ≿ ⊀ ⊁ ⊃ ⊅ ⊇ ⊉ ⊋ ⊏ ⊐ ⊑ ⊒ ⊜ ⊩ ⊬ ⊮ ⊰ ⊱ ⊲ ⊳ ⊴ ⊵ ⊶ ⊷ ⋍ ⋐ ⋑ ⋕ ⋖ ⋗ ⋘ ⋙ ⋚ ⋛ ⋜ ⋝ ⋞ ⋟ ⋠ ⋡ ⋢ ⋣ ⋤ ⋥ ⋦ ⋧ ⋨ ⋩ ⋪ ⋫ ⋬ ⋭ ⋲ ⋳ ⋴ ⋵ ⋶ ⋷ ⋸ ⋹ ⋺ ⋻ ⋼ ⋽ ⋾ ⋿ ⟈ ⟉ ⟒ ⦷ ⧀ ⧁ ⧡ ⧣ ⧤ ⧥ ⩦ ⩧ ⩪ ⩫ ⩬ ⩭ ⩮ ⩯ ⩰ ⩱ ⩲ ⩳ ⩵ ⩶ ⩷ ⩸ ⩹ ⩺ ⩻ ⩼ ⩽ ⩾ ⩿ ⪀ ⪁ ⪂ ⪃ ⪄ ⪅ ⪆ ⪇ ⪈ ⪉ ⪊ ⪋ ⪌ ⪍ ⪎ ⪏ ⪐ ⪑ ⪒ ⪓ ⪔ ⪕ ⪖ ⪗ ⪘ ⪙ ⪚ ⪛ ⪜ ⪝ ⪞ ⪟ ⪠ ⪡ ⪢ ⪣ ⪤ ⪥ ⪦ ⪧ ⪨ ⪩ ⪪ ⪫ ⪬ ⪭ ⪮ ⪯ ⪰ ⪱ ⪲ ⪳ ⪴ ⪵ ⪶ ⪷ ⪸ ⪹ ⪺ ⪻ ⪼ ⪽ ⪾ ⪿ ⫀ ⫁ ⫂ ⫃ ⫄ ⫅ ⫆ ⫇ ⫈ ⫉ ⫊ ⫋ ⫌ ⫍ ⫎ ⫏ ⫐ ⫑ ⫒ ⫓ ⫔ ⫕ ⫖ ⫗ ⫘ ⫙ ⫷ ⫸ ⫹ ⫺ ⊢ ⊣ ⟂ ⫪ ⫫ &lt;: &gt;:))))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-pipe&lt;       &#x27;(|.&lt;\|| |&lt;\||))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-pipe&gt;       &#x27;(|.\|&gt;| |\|&gt;|))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-colon       (<span class=hljs-name >append!</span> &#x27;(: |..|) (<span class=hljs-name >add-dots</span> &#x27;(… ⁝ ⋮ ⋱ ⋰ ⋯))))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-plus        (<span class=hljs-name >append!</span> &#x27;($)
+                          (<span class=hljs-name >add-dots</span> &#x27;(+ - − ¦ |\|| ⊕ ⊖ ⊞ ⊟ |++| ∪ ∨ ⊔ ± ∓ ∔ ∸ ≏ ⊎ ⊻ ⊽ ⋎ ⋓ ⟇ ⧺ ⧻ ⨈ ⨢ ⨣ ⨤ ⨥ ⨦ ⨧ ⨨ ⨩ ⨪ ⨫ ⨬ ⨭ ⨮ ⨹ ⨺ ⩁ ⩂ ⩅ ⩊ ⩌ ⩏ ⩐ ⩒ ⩔ ⩖ ⩗ ⩛ ⩝ ⩡ ⩢ ⩣))))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-times       (<span class=hljs-name >add-dots</span> &#x27;(* / ⌿ ÷ % &amp; · · ⋅ ∘ × |\\| ∩ ∧ ⊗ ⊘ ⊙ ⊚ ⊛ ⊠ ⊡ ⊓ ∗ ∙ ∤ ⅋ ≀ ⊼ ⋄ ⋆ ⋇ ⋉ ⋊ ⋋ ⋌ ⋏ ⋒ ⟑ ⦸ ⦼ ⦾ ⦿ ⧶ ⧷ ⨇ ⨰ ⨱ ⨲ ⨳ ⨴ ⨵ ⨶ ⨷ ⨸ ⨻ ⨼ ⨽ ⩀ ⩃ ⩄ ⩋ ⩍ ⩎ ⩑ ⩓ ⩕ ⩘ ⩚ ⩜ ⩞ ⩟ ⩠ ⫛ ⊍ ▷ ⨝ ⟕ ⟖ ⟗ ⨟)))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-rational    (<span class=hljs-name >add-dots</span> &#x27;(//)))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-bitshift    (<span class=hljs-name >add-dots</span> &#x27;(&lt;&lt; &gt;&gt; &gt;&gt;&gt;)))
+<span class=hljs-comment >;; `where`</span>
+<span class=hljs-comment >;; implicit multiplication (juxtaposition)</span>
+<span class=hljs-comment >;; unary</span>
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-power       (<span class=hljs-name >add-dots</span> &#x27;(^ ↑ ↓ ⇵ ⟰ ⟱ ⤈ ⤉ ⤊ ⤋ ⤒ ⤓ ⥉ ⥌ ⥍ ⥏ ⥑ ⥔ ⥕ ⥘ ⥙ ⥜ ⥝ ⥠ ⥡ ⥣ ⥥ ⥮ ⥯ ￪ ￬)))
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-decl        &#x27;(|::|))
+<span class=hljs-comment >;; `where` occurring after `::`</span>
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-dot         &#x27;(|.|))
+
+(<span class=hljs-name ><span class=hljs-built_in >define</span></span> prec-names &#x27;(prec-assignment
+                     prec-pair prec-conditional prec-arrow prec-lazy-or prec-lazy-and prec-comparison
+                     prec-pipe&lt; prec-pipe&gt; prec-colon prec-plus prec-times prec-rational prec-bitshift
+                     prec-power prec-decl prec-dot))</code></pre> <p>などと定義されている。&#40;<code>src/julia-parser.scm</code>&#41;</p> <p>今回は、binomial演算子の優先順位を、</p> <ul> <li><p>bitshift演算子<code>&lt;&lt; &gt;&gt; &gt;&gt;&gt;</code></p> <li><p>power演算子<code>^</code></p> </ul> <p>の間に設定する。</p> <p>&#33;&#33;&#33; Note title&#61;&quot;既存の~演算子&quot; すでに~は単項演算子として実装されており、これはビット反転を表す。 &#33;&#33;&#33;</p> <p>以上を踏まえて、ブラックボックステストのテストケースを作成した。</p> <pre><code class="julia hljs"><span class=hljs-comment ># examples/unicode.jl</span>
+println(<span class=hljs-number >3</span>~~<span class=hljs-number >2</span>)       <span class=hljs-comment ># 一般的なもの</span>
+println(<span class=hljs-number >1</span>~~<span class=hljs-number >1</span>)       <span class=hljs-comment ># binomial(1,1)=1</span>
+println(<span class=hljs-number >1</span>~~<span class=hljs-number >0</span>)       <span class=hljs-comment ># binomial(1,0)=1</span>
+println(-<span class=hljs-number >3</span>~~<span class=hljs-number >2</span>)      <span class=hljs-comment ># -binomial(3,2)=3</span>
+println((-<span class=hljs-number >3</span>)~~<span class=hljs-number >2</span>)    <span class=hljs-comment ># binomial(-3,2)=6</span>
+println((-<span class=hljs-number >3</span>)~~<span class=hljs-number >3</span>)    <span class=hljs-comment ># binomial(-3,3)=10</span>
+println(<span class=hljs-number >2</span>~~(-<span class=hljs-number >2</span>))    <span class=hljs-comment ># binomial(2,-2)=0</span>
+println((-<span class=hljs-number >3</span>)~~(-<span class=hljs-number >1</span>)) <span class=hljs-comment ># binomial(-3,-1)=0</span>
+println(<span class=hljs-number >2</span>+<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>)     <span class=hljs-comment ># 2+binomial(6,2)=17</span>
+println(<span class=hljs-number >2</span>-<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>)     <span class=hljs-comment ># 2-binomial(6,2)=-13</span>
+println(<span class=hljs-number >3</span>*<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>)     <span class=hljs-comment ># 3*binomial(6,2)=45</span>
+println((<span class=hljs-number >3</span>*<span class=hljs-number >6</span>)~~<span class=hljs-number >2</span>)   <span class=hljs-comment ># binomial(3*6,2)=153</span>
+println(<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>&lt;<span class=hljs-number >4</span>)     <span class=hljs-comment ># binomial(6,2)&lt;4=false</span>
+println(<span class=hljs-number >4</span>&lt;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>)     <span class=hljs-comment ># 4&lt;binomial(6,2)=true</span>
+println(<span class=hljs-number >4</span>&lt;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span> ? <span class=hljs-string >&quot;TRUE&quot;</span> : <span class=hljs-string >&quot;FALSE&quot;</span>) <span class=hljs-comment ># 4&lt;binomial(6,2) ? &quot;TRUE&quot; : &quot;FALSE&quot; = &quot;TRUE&quot;</span>
+println(<span class=hljs-number >4</span>&lt;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>?<span class=hljs-string >&quot;TRUE&quot;</span> : <span class=hljs-string >&quot;FALSE&quot;</span>)   <span class=hljs-comment ># 4&lt;binomial(6,2)?&quot;TRUE&quot; : &quot;FALSE&quot; -&gt; ERROR: ParseError: space required before `?` operator</span>
+println(<span class=hljs-number >4</span>&lt;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>&amp;&amp;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>&lt;<span class=hljs-number >7</span> ? <span class=hljs-string >&quot;TRUE&quot;</span> : <span class=hljs-string >&quot;FALSE&quot;</span>)  <span class=hljs-comment ># 4&lt;binomial(6,2)&amp;&amp;binomial(6,2)&lt;7 ? &quot;TRUE&quot; : &quot;FALSE&quot; = &quot;FALSE&quot;</span>
+println(<span class=hljs-number >4</span>&lt;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>&amp;&amp;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>&lt;<span class=hljs-number >16</span> ? <span class=hljs-string >&quot;TRUE&quot;</span> : <span class=hljs-string >&quot;FALSE&quot;</span>) <span class=hljs-comment ># 4&lt;binomial(6,2)&amp;&amp;binomial(6,2)&lt;16 ? &quot;TRUE&quot; : &quot;FALSE&quot; = &quot;TRUE&quot;</span>
+println(<span class=hljs-number >4</span>&lt;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>||<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>&lt;<span class=hljs-number >7</span> ? <span class=hljs-string >&quot;TRUE&quot;</span> : <span class=hljs-string >&quot;FALSE&quot;</span>)  <span class=hljs-comment ># 4&lt;binomial(6,2)||binomial(6,2)&lt;7 ? &quot;TRUE&quot; : &quot;FALSE&quot; = &quot;TRUE&quot;</span>
+println(<span class=hljs-number >4</span>&lt;<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>||<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>&lt;<span class=hljs-number >16</span> ? <span class=hljs-string >&quot;TRUE&quot;</span> : <span class=hljs-string >&quot;FALSE&quot;</span>) <span class=hljs-comment ># 4&lt;binomial(6,2)||binomial(6,2)&lt;16 ? &quot;TRUE&quot; : &quot;FALSE&quot; = &quot;TRUE&quot;</span>
+x=<span class=hljs-number >2</span>
+x+=<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>
+println(x)              <span class=hljs-comment ># x=2, x+=6~~2 = 17</span>
+println(<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>/<span class=hljs-number >3</span>)         <span class=hljs-comment ># binomial(6,2)/3 = 5.0</span>
+println(<span class=hljs-number >90</span>/<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>)        <span class=hljs-comment ># 90/binomial(6,2) = 6.0</span>
+println(<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>//<span class=hljs-number >3</span>)        <span class=hljs-comment ># binomial(6,2)//3 = 5//1</span>
+println(<span class=hljs-number >90</span>//<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>)       <span class=hljs-comment ># 90//binomial(6,2) = 6//1</span>
+println(<span class=hljs-number >1</span>&lt;&lt;<span class=hljs-number >5</span>~~<span class=hljs-number >2</span>)        <span class=hljs-comment ># 1&lt;&lt;binomial(5,2) = 1024</span>
+println(<span class=hljs-number >1024</span>&gt;&gt;<span class=hljs-number >4</span>~~<span class=hljs-number >2</span>)     <span class=hljs-comment ># 1024&gt;&gt;binomial(4,2) = 16</span>
+println((<span class=hljs-number >1024</span>&gt;&gt;<span class=hljs-number >4</span>)~~<span class=hljs-number >2</span>)   <span class=hljs-comment ># binomial((1024&gt;&gt;4),2) = 2016</span>
+println(<span class=hljs-number >2</span>^<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>)         <span class=hljs-comment ># binomial(2^6,2) = 2016</span>
+println(<span class=hljs-number >6</span>~~<span class=hljs-number >2</span>^<span class=hljs-number >2</span>)         <span class=hljs-comment ># binomial(6,2^2) = 15</span>
+
+<span class=hljs-comment ># ~と~~</span>
+println(~(-<span class=hljs-number >7</span>)~~<span class=hljs-number >2</span>)       <span class=hljs-comment ># binomial(~(-7),2) = 15</span>
+println(<span class=hljs-number >6</span>~~~(-<span class=hljs-number >3</span>))       <span class=hljs-comment ># binomial(6,~(-3)) = 15</span>
+println(<span class=hljs-number >6</span>~~<span class=hljs-number >3</span>~~<span class=hljs-number >2</span>)        <span class=hljs-comment ># binomial(binomial(6,3),2) = 190</span>
+println(~<span class=hljs-number >6</span>~~<span class=hljs-number >3</span>~~<span class=hljs-number >2</span>)        <span class=hljs-comment ># binomial(binomial(~6,3),2) = 3570</span>
+println((~<span class=hljs-number >6</span>)~~<span class=hljs-number >3</span>~~<span class=hljs-number >2</span>)        <span class=hljs-comment ># binomial(binomial(~6,3),2) = 3570</span>
+println(<span class=hljs-number >6</span>~~(~<span class=hljs-number >3</span>)~~<span class=hljs-number >2</span>)        <span class=hljs-comment ># binomial(binomial(6,~3),2) = 0</span></code></pre> <div class=page-foot > <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> ジュリアまさぐり隊. Last modified: November 11, 2024. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>. </div> </div> <script src="/julia_blog/libs/highlight/highlight.min.js"></script> <script>hljs.highlightAll();hljs.configure({tabReplace: ' '});</script>
