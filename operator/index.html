@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/css/franklin.css">
   <link rel="stylesheet" href="/css/basic.css">
   <link rel="icon" href="/assets/favicon.png">
-   <title>ジュリアまさぐり隊レポート</title>  
+   <title>Juliaに演算子を追加してみた</title>  
 </head>
 <body>
   <header>
@@ -25,31 +25,17 @@
 
 
 <!-- Content appended here -->
-<div class="franklin-content"><p>Last Modified: November 11, 2024</p>
-<h1 id="目次"><a href="#目次" class="header-anchor">目次</a></h1>
-<div class="franklin-toc"><ol><li><a href="#はじめに">はじめに</a></li><li><a href="#そもそもjuliaとは">そもそもJuliaとは？</a></li><li><a href="#ビルド方法">ビルド方法</a><ol><li><a href="#flanklinjlの導入">Flanklin.jlの導入</a></li></ol></li><li><a href="#juliaに演算子を追加してみた">Juliaに演算子を追加してみた</a></li><li><a href="#franklinjlのadmonitionを機能拡張してみた">Franklin.jlのadmonitionを機能拡張してみた</a></li><li><a href="#まとめ">まとめ</a></li></ol></div>
-<h2 id="はじめに"><a href="#はじめに" class="header-anchor">はじめに</a></h2>
-<p>突然ですが、みなさん<strong>Julia</strong>という言語を知っていますか？この言語は最近出てきたばかりの言語なので、まだ馴染みのない人は多くいると思います。 しかし、このAIの機械学習などの発展の自体の中非常に注目されている言語でもあります。</p>
-<p>そこで今回は<strong>Julia</strong>という言語について詳しく探って、演算子の追加と、追加パッケージの<code>Flanklin.jl</code>でのadmonitionの追加をしてみようと思います。</p>
-<h2 id="そもそもjuliaとは"><a href="#そもそもjuliaとは" class="header-anchor">そもそもJuliaとは？</a></h2>
-<ul>
-<li><p><strong>MITで開発された言語</strong></p>
-</li>
-</ul>
-<p>Julia言語はマサチューセッツ工科大学&#40;MIT&#41;で『<strong>高度な数値解析や科学技術計算が可能で実行速度も速く</strong>、他の言語の良いところだけを組み合わせた言語を目指し』て作られた言語です。&quot;C言語の様に早い&quot;が、&quot;Pythonのように直感的&quot;に書けるような言語体系を目指して作られました。</p>
-<ul>
-<li><p><strong>C言語で基本的な構造が書かれている</strong></p>
-</li>
-</ul>
-<p>多くの基本的な言語体系や、機能自体の根幹は<strong>C言語</strong>で書かれています。 Julia言語とC言語を行き来するような関数が定義されていて、プログラマの書き方などはJuliaで、その実際の機能はC言語の関数を用いるという流れになっています。</p>
-<ul>
-<li><p><strong>JITコンパイル方式を採用</strong></p>
-</li>
-</ul>
-<p>先ほども書きましたが、Juliaは、早く動作することにも重きを置かれています。 そこで、Juliaはコンパイルの際にC言語のようなAOTコンパイルではなく、<strong>JITコンパイル</strong>という方式を採用しています。</p>
-<p><strong>JITコンパイル</strong>とは、実際にプログラムが書かれて実行される直前に、<strong>必要な関数のみをコンパイル</strong>する方式で行われます。</p>
-<p>例えば<code>./julia&gt; 3 &#43; 4</code>と書かれたら、<code>&#43;</code>を実行するのに必要な部分のみがコンパイルされ、その後<code>&#43;</code>を用いる計算の時は、コンパイル済みの部分を使うという方式です。</p>
-<p>これにすることで、最初に関数を実行する際のみ少しだけ時間がかかりますが、そのあとはいちいちコンパイルし直すさないので、一瞬で答えを導くことが可能となります。この様にして、より高速な実行が可能となっているのです。</p>
+<div class="franklin-content"><h1 id="juliaに演算子を追加してみた"><a href="#juliaに演算子を追加してみた" class="header-anchor">Juliaに演算子を追加してみた</a></h1>
+<div class="franklin-toc"><ol><li><a href="#要件">要件</a></li><li><a href="#juliaが生成される過程"><code>./julia</code>が生成される過程</a><ol><li><a href="#juliaコードで基本的な構文や機能を実装">JULIAコードで基本的な構文や機能を実装</a></li><li><a href="#c言語で実行の枠組みを作成">C言語で実行の枠組みを作成</a></li></ol></li></ol></div>
+<p>今回は、言語処理系のOSSの一つである<strong>JULIA</strong>言語について、ソースコードを手探り、演算子を追加することを目指しました。</p>
+<p>あらかじめ<code>2024-05-julia</code>ディレクトリに移動しておきましょう。</p>
+<h2 id="要件"><a href="#要件" class="header-anchor">要件</a></h2>
+<p>組み合わせの総数を計算する<em>Combination</em>演算は、現状</p>
+<pre><code class="language-julia">binomial&#40;4,2&#41;
+&gt; 6</code></pre>
+<p>と、関数として定義されている。</p>
+<p>この<code>binomial&#40;M,N&#41;</code>を<code>M~~N</code>という短縮された<strong>二項演算子</strong>にする。</p>
+<p>演算子には優先順位がある。</p>
 <head>
     <style>
         .admonition {
@@ -220,13 +206,55 @@
     </style>
 </head>
 <body>
-    <div class="admonition info">
-        <p class="admonition-title">AOTコンパイルとは</p>
-        <p><br>・C言語でよく使われるもの<br>・実行前にソースコードや中間コードをコンパイルする方法である<br>・JITコンパイルと比較してメモリ消費量が少ない</p>
+    <div class="admonition example">
+        <p class="admonition-title">演算子の優先順位の代表例</p>
+        <p><br>3+5×2に対して、3+5よりも5×2が先に行われる。</p>
     </div>
 </body>
 
-<p>これら以上に挙げたものがこのJuliaという言語の特徴です。（他にもあります。例えば多重ディスパッチなど）</p>
+<p>既存の演算子の優先順位は、</p>
+<pre><code class="language-scheme">&#40;define prec-assignment
+  &#40;append&#33; &#40;add-dots &#39;&#40;&#61; &#43;&#61; -&#61; −&#61; *&#61; /&#61; //&#61; |\\&#61;| ^&#61; ÷&#61; &#37;&#61; &lt;&lt;&#61; &gt;&gt;&#61; &gt;&gt;&gt;&#61; |\|&#61;| &amp;&#61; ⊻&#61; ≔ ⩴ ≕&#41;&#41;
+           &#40;add-dots &#39;&#40;~&#41;&#41;
+           &#39;&#40;:&#61; &#36;&#61;&#41;&#41;&#41;
+;; comma - higher than assignment outside parentheses, lower when inside
+&#40;define prec-pair &#40;add-dots &#39;&#40;&#61;&gt;&#41;&#41;&#41;
+&#40;define prec-conditional &#39;&#40;?&#41;&#41;
+&#40;define prec-arrow       &#40;add-dots &#39;&#40;← → ↔ ↚ ↛ ↞ ↠ ↢ ↣ ↦ ↤ ↮ ⇎ ⇍ ⇏ ⇐ ⇒ ⇔ ⇴ ⇶ ⇷ ⇸ ⇹ ⇺ ⇻ ⇼ ⇽ ⇾ ⇿ ⟵ ⟶ ⟷ ⟹ ⟺ ⟻ ⟼ ⟽ ⟾ ⟿ ⤀ ⤁ ⤂ ⤃ ⤄ ⤅ ⤆ ⤇ ⤌ ⤍ ⤎ ⤏ ⤐ ⤑ ⤔ ⤕ ⤖ ⤗ ⤘ ⤝ ⤞ ⤟ ⤠ ⥄ ⥅ ⥆ ⥇ ⥈ ⥊ ⥋ ⥎ ⥐ ⥒ ⥓ ⥖ ⥗ ⥚ ⥛ ⥞ ⥟ ⥢ ⥤ ⥦ ⥧ ⥨ ⥩ ⥪ ⥫ ⥬ ⥭ ⥰ ⧴ ⬱ ⬰ ⬲ ⬳ ⬴ ⬵ ⬶ ⬷ ⬸ ⬹ ⬺ ⬻ ⬼ ⬽ ⬾ ⬿ ⭀ ⭁ ⭂ ⭃ ⥷ ⭄ ⥺ ⭇ ⭈ ⭉ ⭊ ⭋ ⭌ ￩ ￫ ⇜ ⇝ ↜ ↝ ↩ ↪ ↫ ↬ ↼ ↽ ⇀ ⇁ ⇄ ⇆ ⇇ ⇉ ⇋ ⇌ ⇚ ⇛ ⇠ ⇢ ↷ ↶ ↺ ↻ --&gt; &lt;-- &lt;--&gt;&#41;&#41;&#41;
+&#40;define prec-lazy-or     &#40;add-dots &#39;&#40;|\|\||&#41;&#41;&#41;
+&#40;define prec-lazy-and    &#40;add-dots &#39;&#40;&amp;&amp;&#41;&#41;&#41;
+&#40;define prec-comparison
+  &#40;append&#33; &#39;&#40;in isa&#41;
+           &#40;add-dots &#39;&#40;&gt; &lt; &gt;&#61; ≥ &lt;&#61; ≤ &#61;&#61; &#61;&#61;&#61; ≡ &#33;&#61; ≠ &#33;&#61;&#61; ≢ ∈ ∉ ∋ ∌ ⊆ ⊈ ⊂ ⊄ ⊊ ∝ ∊ ∍ ∥ ∦ ∷ ∺ ∻ ∽ ∾ ≁ ≃ ≂ ≄ ≅ ≆ ≇ ≈ ≉ ≊ ≋ ≌ ≍ ≎ ≐ ≑ ≒ ≓ ≖ ≗ ≘ ≙ ≚ ≛ ≜ ≝ ≞ ≟ ≣ ≦ ≧ ≨ ≩ ≪ ≫ ≬ ≭ ≮ ≯ ≰ ≱ ≲ ≳ ≴ ≵ ≶ ≷ ≸ ≹ ≺ ≻ ≼ ≽ ≾ ≿ ⊀ ⊁ ⊃ ⊅ ⊇ ⊉ ⊋ ⊏ ⊐ ⊑ ⊒ ⊜ ⊩ ⊬ ⊮ ⊰ ⊱ ⊲ ⊳ ⊴ ⊵ ⊶ ⊷ ⋍ ⋐ ⋑ ⋕ ⋖ ⋗ ⋘ ⋙ ⋚ ⋛ ⋜ ⋝ ⋞ ⋟ ⋠ ⋡ ⋢ ⋣ ⋤ ⋥ ⋦ ⋧ ⋨ ⋩ ⋪ ⋫ ⋬ ⋭ ⋲ ⋳ ⋴ ⋵ ⋶ ⋷ ⋸ ⋹ ⋺ ⋻ ⋼ ⋽ ⋾ ⋿ ⟈ ⟉ ⟒ ⦷ ⧀ ⧁ ⧡ ⧣ ⧤ ⧥ ⩦ ⩧ ⩪ ⩫ ⩬ ⩭ ⩮ ⩯ ⩰ ⩱ ⩲ ⩳ ⩵ ⩶ ⩷ ⩸ ⩹ ⩺ ⩻ ⩼ ⩽ ⩾ ⩿ ⪀ ⪁ ⪂ ⪃ ⪄ ⪅ ⪆ ⪇ ⪈ ⪉ ⪊ ⪋ ⪌ ⪍ ⪎ ⪏ ⪐ ⪑ ⪒ ⪓ ⪔ ⪕ ⪖ ⪗ ⪘ ⪙ ⪚ ⪛ ⪜ ⪝ ⪞ ⪟ ⪠ ⪡ ⪢ ⪣ ⪤ ⪥ ⪦ ⪧ ⪨ ⪩ ⪪ ⪫ ⪬ ⪭ ⪮ ⪯ ⪰ ⪱ ⪲ ⪳ ⪴ ⪵ ⪶ ⪷ ⪸ ⪹ ⪺ ⪻ ⪼ ⪽ ⪾ ⪿ ⫀ ⫁ ⫂ ⫃ ⫄ ⫅ ⫆ ⫇ ⫈ ⫉ ⫊ ⫋ ⫌ ⫍ ⫎ ⫏ ⫐ ⫑ ⫒ ⫓ ⫔ ⫕ ⫖ ⫗ ⫘ ⫙ ⫷ ⫸ ⫹ ⫺ ⊢ ⊣ ⟂ ⫪ ⫫ &lt;: &gt;:&#41;&#41;&#41;&#41;
+&#40;define prec-pipe&lt;       &#39;&#40;|.&lt;\|| |&lt;\||&#41;&#41;
+&#40;define prec-pipe&gt;       &#39;&#40;|.\|&gt;| |\|&gt;|&#41;&#41;
+&#40;define prec-colon       &#40;append&#33; &#39;&#40;: |..|&#41; &#40;add-dots &#39;&#40;… ⁝ ⋮ ⋱ ⋰ ⋯&#41;&#41;&#41;&#41;
+&#40;define prec-plus        &#40;append&#33; &#39;&#40;&#36;&#41;
+                          &#40;add-dots &#39;&#40;&#43; - − ¦ |\|| ⊕ ⊖ ⊞ ⊟ |&#43;&#43;| ∪ ∨ ⊔ ± ∓ ∔ ∸ ≏ ⊎ ⊻ ⊽ ⋎ ⋓ ⟇ ⧺ ⧻ ⨈ ⨢ ⨣ ⨤ ⨥ ⨦ ⨧ ⨨ ⨩ ⨪ ⨫ ⨬ ⨭ ⨮ ⨹ ⨺ ⩁ ⩂ ⩅ ⩊ ⩌ ⩏ ⩐ ⩒ ⩔ ⩖ ⩗ ⩛ ⩝ ⩡ ⩢ ⩣&#41;&#41;&#41;&#41;
+&#40;define prec-times       &#40;add-dots &#39;&#40;* / ⌿ ÷ &#37; &amp; · · ⋅ ∘ × |\\| ∩ ∧ ⊗ ⊘ ⊙ ⊚ ⊛ ⊠ ⊡ ⊓ ∗ ∙ ∤ ⅋ ≀ ⊼ ⋄ ⋆ ⋇ ⋉ ⋊ ⋋ ⋌ ⋏ ⋒ ⟑ ⦸ ⦼ ⦾ ⦿ ⧶ ⧷ ⨇ ⨰ ⨱ ⨲ ⨳ ⨴ ⨵ ⨶ ⨷ ⨸ ⨻ ⨼ ⨽ ⩀ ⩃ ⩄ ⩋ ⩍ ⩎ ⩑ ⩓ ⩕ ⩘ ⩚ ⩜ ⩞ ⩟ ⩠ ⫛ ⊍ ▷ ⨝ ⟕ ⟖ ⟗ ⨟&#41;&#41;&#41;
+&#40;define prec-rational    &#40;add-dots &#39;&#40;//&#41;&#41;&#41;
+&#40;define prec-bitshift    &#40;add-dots &#39;&#40;&lt;&lt; &gt;&gt; &gt;&gt;&gt;&#41;&#41;&#41;
+;; &#96;where&#96;
+;; implicit multiplication &#40;juxtaposition&#41;
+;; unary
+&#40;define prec-power       &#40;add-dots &#39;&#40;^ ↑ ↓ ⇵ ⟰ ⟱ ⤈ ⤉ ⤊ ⤋ ⤒ ⤓ ⥉ ⥌ ⥍ ⥏ ⥑ ⥔ ⥕ ⥘ ⥙ ⥜ ⥝ ⥠ ⥡ ⥣ ⥥ ⥮ ⥯ ￪ ￬&#41;&#41;&#41;
+&#40;define prec-decl        &#39;&#40;|::|&#41;&#41;
+;; &#96;where&#96; occurring after &#96;::&#96;
+&#40;define prec-dot         &#39;&#40;|.|&#41;&#41;
+
+&#40;define prec-names &#39;&#40;prec-assignment
+                     prec-pair prec-conditional prec-arrow prec-lazy-or prec-lazy-and prec-comparison
+                     prec-pipe&lt; prec-pipe&gt; prec-colon prec-plus prec-times prec-rational prec-bitshift
+                     prec-power prec-decl prec-dot&#41;&#41;</code></pre>
+<p>などと定義されている。&#40;<code>src/julia-parser.scm</code>&#41;</p>
+<p>今回は、binomial演算子の優先順位を、</p>
+<ul>
+<li><p>bitshift演算子<code>&lt;&lt; &gt;&gt; &gt;&gt;&gt;</code></p>
+</li>
+<li><p>power演算子<code>^</code></p>
+</li>
+</ul>
+<p>の間に設定する。</p>
 <head>
     <style>
         .admonition {
@@ -397,14 +425,103 @@
     </style>
 </head>
 <body>
-    <div class="admonition summary">
-        <p class="admonition-title">Julia言語の特徴</p>
-        <p><br>①書きやすく、早い言語<br>②C言語を用いて書かれている<br>③JITコンパイル</p>
+    <div class="admonition note">
+        <p class="admonition-title">既存の~演算子</p>
+        <p><br>すでに~は単項演算子として実装されており、これはビット反転を表す。</p>
     </div>
 </body>
 
-<h2 id="ビルド方法"><a href="#ビルド方法" class="header-anchor">ビルド方法</a></h2>
-<p>では実際にJuliaのソースコードをいじれる様にしていきましょう。 今回は2024-05-juliaというgitのリポジトリからいじることにします。</p>
+<p>以上を踏まえて、ブラックボックステストのテストケースを作成した。</p>
+<pre><code class="language-julia"># examples/unicode.jl
+println&#40;3~~2&#41;       # 一般的なもの
+println&#40;1~~1&#41;       # binomial&#40;1,1&#41;&#61;1
+println&#40;1~~0&#41;       # binomial&#40;1,0&#41;&#61;1
+println&#40;-3~~2&#41;      # -binomial&#40;3,2&#41;&#61;3
+println&#40;&#40;-3&#41;~~2&#41;    # binomial&#40;-3,2&#41;&#61;6
+println&#40;&#40;-3&#41;~~3&#41;    # binomial&#40;-3,3&#41;&#61;10
+println&#40;2~~&#40;-2&#41;&#41;    # binomial&#40;2,-2&#41;&#61;0
+println&#40;&#40;-3&#41;~~&#40;-1&#41;&#41; # binomial&#40;-3,-1&#41;&#61;0
+println&#40;2&#43;6~~2&#41;     # 2&#43;binomial&#40;6,2&#41;&#61;17
+println&#40;2-6~~2&#41;     # 2-binomial&#40;6,2&#41;&#61;-13
+println&#40;3*6~~2&#41;     # 3*binomial&#40;6,2&#41;&#61;45
+println&#40;&#40;3*6&#41;~~2&#41;   # binomial&#40;3*6,2&#41;&#61;153
+println&#40;6~~2&lt;4&#41;     # binomial&#40;6,2&#41;&lt;4&#61;false
+println&#40;4&lt;6~~2&#41;     # 4&lt;binomial&#40;6,2&#41;&#61;true
+println&#40;4&lt;6~~2 ? &quot;TRUE&quot; : &quot;FALSE&quot;&#41; # 4&lt;binomial&#40;6,2&#41; ? &quot;TRUE&quot; : &quot;FALSE&quot; &#61; &quot;TRUE&quot;
+println&#40;4&lt;6~~2?&quot;TRUE&quot; : &quot;FALSE&quot;&#41;   # 4&lt;binomial&#40;6,2&#41;?&quot;TRUE&quot; : &quot;FALSE&quot; -&gt; ERROR: ParseError: space required before &#96;?&#96; operator
+println&#40;4&lt;6~~2&amp;&amp;6~~2&lt;7 ? &quot;TRUE&quot; : &quot;FALSE&quot;&#41;  # 4&lt;binomial&#40;6,2&#41;&amp;&amp;binomial&#40;6,2&#41;&lt;7 ? &quot;TRUE&quot; : &quot;FALSE&quot; &#61; &quot;FALSE&quot;
+println&#40;4&lt;6~~2&amp;&amp;6~~2&lt;16 ? &quot;TRUE&quot; : &quot;FALSE&quot;&#41; # 4&lt;binomial&#40;6,2&#41;&amp;&amp;binomial&#40;6,2&#41;&lt;16 ? &quot;TRUE&quot; : &quot;FALSE&quot; &#61; &quot;TRUE&quot;
+println&#40;4&lt;6~~2||6~~2&lt;7 ? &quot;TRUE&quot; : &quot;FALSE&quot;&#41;  # 4&lt;binomial&#40;6,2&#41;||binomial&#40;6,2&#41;&lt;7 ? &quot;TRUE&quot; : &quot;FALSE&quot; &#61; &quot;TRUE&quot;
+println&#40;4&lt;6~~2||6~~2&lt;16 ? &quot;TRUE&quot; : &quot;FALSE&quot;&#41; # 4&lt;binomial&#40;6,2&#41;||binomial&#40;6,2&#41;&lt;16 ? &quot;TRUE&quot; : &quot;FALSE&quot; &#61; &quot;TRUE&quot;
+x&#61;2
+x&#43;&#61;6~~2
+println&#40;x&#41;              # x&#61;2, x&#43;&#61;6~~2 &#61; 17
+println&#40;6~~2/3&#41;         # binomial&#40;6,2&#41;/3 &#61; 5.0
+println&#40;90/6~~2&#41;        # 90/binomial&#40;6,2&#41; &#61; 6.0
+println&#40;6~~2//3&#41;        # binomial&#40;6,2&#41;//3 &#61; 5//1
+println&#40;90//6~~2&#41;       # 90//binomial&#40;6,2&#41; &#61; 6//1
+println&#40;1&lt;&lt;5~~2&#41;        # 1&lt;&lt;binomial&#40;5,2&#41; &#61; 1024
+println&#40;1024&gt;&gt;4~~2&#41;     # 1024&gt;&gt;binomial&#40;4,2&#41; &#61; 16
+println&#40;&#40;1024&gt;&gt;4&#41;~~2&#41;   # binomial&#40;&#40;1024&gt;&gt;4&#41;,2&#41; &#61; 2016
+println&#40;2^6~~2&#41;         # binomial&#40;2^6,2&#41; &#61; 2016
+println&#40;6~~2^2&#41;         # binomial&#40;6,2^2&#41; &#61; 15
+
+# ~と~~
+println&#40;~&#40;-7&#41;~~2&#41;       # binomial&#40;~&#40;-7&#41;,2&#41; &#61; 15
+println&#40;6~~~&#40;-3&#41;&#41;       # binomial&#40;6,~&#40;-3&#41;&#41; &#61; 15
+println&#40;6~~3~~2&#41;        # binomial&#40;binomial&#40;6,3&#41;,2&#41; &#61; 190
+println&#40;~6~~3~~2&#41;        # binomial&#40;binomial&#40;~6,3&#41;,2&#41; &#61; 3570
+println&#40;&#40;~6&#41;~~3~~2&#41;        # binomial&#40;binomial&#40;~6,3&#41;,2&#41; &#61; 3570
+println&#40;6~~&#40;~3&#41;~~2&#41;        # binomial&#40;binomial&#40;6,~3&#41;,2&#41; &#61; 0</code></pre>
+<h2 id="juliaが生成される過程"><a href="#juliaが生成される過程" class="header-anchor"><code>./julia</code>が生成される過程</a></h2>
+<p>演算子を追加する上では、<strong>julia</strong>言語の動作原理をうっすら理解しておく必要がある。</p>
+<p>まずは、<strong>julia</strong>言語のソフトウェアとしてのディレクトリ/ファイル構造を示す。</p>
+<p><img src="/assets/directory.png" alt="ディレクトリ構造" /></p>
+<h3 id="juliaコードで基本的な構文や機能を実装"><a href="#juliaコードで基本的な構文や機能を実装" class="header-anchor">JULIAコードで基本的な構文や機能を実装</a></h3>
+<p><code>base/</code>ディレクトリには、無数の<code>.jl</code>ファイルが含まれている。</p>
+<p>このディレクトリでは、JULIAのコードにより</p>
+<ul>
+<li><p>様々な演算子・便利関数の定義</p>
+</li>
+<li><p>字句規則の制定</p>
+</li>
+<li><p>構文規則の制定</p>
+</li>
+<li><p>字句解析の関数定義</p>
+</li>
+<li><p>構文解析の関数定義</p>
+</li>
+</ul>
+<p>などが行われている。特に、字句解析・構文解析関連の実装は、全て、<code>base/JuliaSyntax/</code>で行われている。</p>
+<h3 id="c言語で実行の枠組みを作成"><a href="#c言語で実行の枠組みを作成" class="header-anchor">C言語で実行の枠組みを作成</a></h3>
+<p>我々が普段書くようなJULIAのプログラムを実行する</p>
+<pre><code class="language-sh">julia ./helloworld.jl</code></pre>
+<p>といったコマンドは、実際には</p>
+<ul>
+<li><p>環境変数に指定されたPATHの先にある、実行ファイル（ここまで<code>./julia</code>と呼んできたものに相当）を実行する</p>
+</li>
+<li><p>実行時のコマンドライン引数として、プログラムのPATH<code>./helloworld.jl</code>を渡す</p>
+</li>
+</ul>
+<p>ことを意味している。</p>
+<p>逆に言えば、実行ファイル<code>./julia</code>は、<code>.jl</code>形式のJULIAで書かれたプログラムに対し、</p>
+<ul>
+<li><p>字句解析: 文字列としてのプログラムコード（<code>helloworld.jl</code>の中身）を、文-&gt;Tokenと分解する</p>
+</li>
+<li><p>構文解析: Tokenの並びが構文規則に従うか判定する</p>
+</li>
+<li><p>意味解析: 解析結果をもとに中間コード（例: 逆ポーランド記法）に変換する</p>
+</li>
+<li><p>型推論: 各変数や式の型を推論</p>
+</li>
+<li><p>最適化: レジスタの割付や、不要な演算の省略などを行う（LLVM; Low-Level-Virtual-Machine コンパイラフレームワークが行う<code>deps/</code>のコード）</p>
+</li>
+<li><p>アセンブリに変換</p>
+</li>
+<li><p>実行: アセンブリを順に実行する</p>
+</li>
+</ul>
+<p>といった機能を全て包含していることになる。</p>
 <head>
     <style>
         .admonition {
@@ -575,53 +692,13 @@
     </style>
 </head>
 <body>
-    <div class="admonition warning">
-        <p class="admonition-title">開発環境について</p>
-        <p><br>今回はUbuntuと、MacBook Air Apple M1チップで、Visual Stadio Code で動作を確認しています。他のパソコン・アプリでもできると思いますが、保証はできません…</p>
+    <div class="admonition note">
+        <p class="admonition-title">字句解析で文に分解する方法</p>
+        <p><br>改行文字\nを読み取るか、文の区切り文字;を読み取る度に区切る。</p>
     </div>
 </body>
 
-<p><strong>①<a href="https://github.com/JuliaLang/julia">Julia公式サイトのHP</a>からローカルにダウンロード</strong> まずはgitの自分たちのリポジトリ&#40;2024-05-julia&#41;にgit cloneします。</p>
-<p>その後、チーム各々がローカルで作業し、衝突などを起こさないようにgit管理できる様にします。</p>
-<pre><code class="language-C">&#36;git clone https://github.com/doss-eeic/2024-05-julia.git
-&#36;make -j8 #&quot;-j8&quot;はコアを８個使うという意味です。つけなければビルドに時間がかかってしまいます。
-&#36;make install</code></pre>
-<p>これをすることでJuliaが使える様になるはずだ！</p>
-<pre><code class="language-C">&#36;./julia</code></pre>
-<p>と入力することで以下の様なターミナルの画面になるはずです。</p>
-<pre><code class="language-C">_
-   _       _ _&#40;_&#41;_     |  Documentation: https://docs.julialang.org
-  &#40;_&#41;     | &#40;_&#41; &#40;_&#41;    |
-   _ _   _| |_  __ _   |  Type &quot;?&quot; for help, &quot;&#93;?&quot; for Pkg help.
-  | | | | | | |/ _&#96; |  |
-  | | |_| | | | &#40;_| |  |  Version 1.12.0-DEV.1335 &#40;2024-10-08&#41;
- _/ |\__&#39;_|_|_|\__&#39;_|  |  Commit a9f56c5021* &#40;30 days old master&#41;
-|__/                   |
-
-julia&gt;</code></pre>
-<h3 id="flanklinjlの導入"><a href="#flanklinjlの導入" class="header-anchor">Flanklin.jlの導入</a></h3>
-<p>次に<code>Flanklin.jl</code>が同じフォルダから操作できるように統合してみましょう。 <strong>①.REPLを起動</strong></p>
-<pre><code class="language-bash">&#36;./julia</code></pre>
-<p>このコマンドを入力して、juliaのREPLを起動します。</p>
-<p><strong>②Franklin.jlのパッケージを追加</strong> まず&quot;&#93;&quot;を入力してください。</p>
-<pre><code class="language-bash">&#40;@v1.12&#41; pkg&gt;</code></pre>
-<p>上記の表示に変わります。この状態で以下のコマンドを入力してください。</p>
-<pre><code class="language-bash">&#40;@v1.12&#41; pkg&gt; dev &quot;Franklin.jlへのパス&quot;</code></pre>
-<p>例えば、Franklin.jlが/home/denjo/2024-05-julia/Franklin.jlにある場合は以下を入力します。</p>
-<pre><code class="language-bash">&#40;@v1.12&#41; pkg&gt; dev /home/denjo/2024-05-julia/Franklin.jl</code></pre>
-<p>これでFranklin.jlのビルドは完了です。</p>
-<p><strong>③サイトの起動</strong> 通常のターミナルで以下を実行してみましょう。</p>
-<pre><code class="language-bash">&#36;./julia examples/fra.jl</code></pre>
-<p>私達のブログのページが表示されたら成功です！</p>
-<h2 id="juliaに演算子を追加してみた"><a href="#juliaに演算子を追加してみた" class="header-anchor">Juliaに演算子を追加してみた</a></h2>
-<p>Juliaには多くの演算子や関数が標準搭載されており、ユーザのやりたいことはほとんどできる様になっています。 その中に、コンビネーションの計算をする関数 <code>binominal&#40;&#41;</code> もありますが、もっと直感的に書こうと考えました！</p>
-<p>非常に長くなるので、演算子追加については<a href="/operator/">こちら</a>を参照</p>
-<h2 id="franklinjlのadmonitionを機能拡張してみた"><a href="#franklinjlのadmonitionを機能拡張してみた" class="header-anchor">Franklin.jlのadmonitionを機能拡張してみた</a></h2>
-<p>次にadmonition機能を拡張してみました。デフォルトのadmonition機能だと少しみにくかったり、Note機能しかなかったりとなかなか不便だなと感じました。（感じますよね？？？？）松井勇佑先生の困った声に応えて実装してみました！</p>
-<p>こちらも少し長くなるので<a href="/admonitions/">こちら</a>を参照のこと。</p>
-<h2 id="まとめ"><a href="#まとめ" class="header-anchor">まとめ</a></h2>
-<p>今回はJuliaという言語について *演算子&quot;~~&quot;の追加 *Franklin.jlのadmonition機能の追加 という機能拡張を行ってみました。</p>
-<p>今後もJuliaは一般の多くのユーザによって発展し続けていきます。みなさんも欲しい機能を追加してみてはいかかでしょうか？</p>
+<p>実は、これらの機能の司会進行をしているのは、<strong><code>src/</code>ディレクトリに配置されたC言語ないしはC&#43;&#43;のコード</strong>から生成された部分である。</p>
 <div class="page-foot">
     <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> ジュリアまさぐり隊. Last modified: November 11, 2024.
     Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
