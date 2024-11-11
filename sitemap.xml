@@ -2,12 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
-    <loc>https://aphrodi03.github.io/julia_blog/operator/index.html</loc>
-    <lastmod>2024-11-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-</url>
-<url>
     <loc>https://aphrodi03.github.io/julia_blog/admonitions/index.html</loc>
     <lastmod>2024-11-11</lastmod>
     <changefreq>monthly</changefreq>
