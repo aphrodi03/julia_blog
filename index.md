@@ -1,7 +1,7 @@
 @def hascode = true
 
 
-@def title = "The last report of 2024-05-julia"
+@def title = "ジュリアまさぐり隊レポート"
 
 Last Modified: {{ fd_mtime }}
 # 目次
